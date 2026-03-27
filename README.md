@@ -12,7 +12,7 @@ This Streamlit app detects fraudulent participation to an online study with 3 co
 
 | Rule | Threshold | Behavior flagged |
 | :--- | :--- | :--- |
-| All tasks Low RT variability | IQR <75ms | Butoon mashing or bot completion |
+| All tasks low RT variability | IQR <75ms | Button mashing or bot completion |
 | All tasks speed-running | > 15% trials below mininmal RTs* | Speed-running |
 | GNG high false alarm rate | > 45% on NoGo trials | Always pressing to rush regardless of stimulus type |
 | GNG high miss rate | > 35 % on Go trials | Letting the task run while doing something else |
