@@ -5,7 +5,7 @@ This Streamlit app detects fraudulent participation to an online study with 3 co
 ### How to use
 - Open the [Streamlit app](https://fraudulentstudyparticipationdetector.streamlit.app/) in your browser
 - Drop participants' csv files: you can drop multiple files per participant, and multiple participants (they will be grouped by ID)
-- Read the fraud report
+- Read the fraud report: see if some participants' files are flagged as suspicious and why exactly, inspect trial distributions
 - Chase fraudsters and deny study compensation money
 
 ### Fraud flagging rules
