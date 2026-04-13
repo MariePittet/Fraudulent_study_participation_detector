@@ -99,14 +99,14 @@ if uploaded_files:
                     nogo_trials = df[df['isgo'] == 0]
                     if len(nogo_trials) > 0:
                         fa_rate = nogo_trials['responded'].fillna(0).mean()
-                        if fa_rate > 0.45:
+                        if fa_rate > 0.20:
                             p_result["Flags"].append(f"GNG: High false alarms ({fa_rate:.0%})")
                     
                     # High omission error rate (letting the task run and doing something else)
                     go_trials = df[df['isgo'] == 1]
                     if len(go_trials) > 0:
                         miss_rate = 1 - go_trials['responded'].fillna(0).mean()
-                        if miss_rate > 0.35:
+                        if miss_rate > 0.10:
                             p_result["Flags"].append(f"GNG: High miss Rate ({miss_rate:.0%})")
 
             # AFC: long streaks of the same item position (always picking the item on the left, or on the right)
