@@ -99,7 +99,7 @@ if uploaded_files:
                     nogo_trials = df[df['isgo'] == 0]
                     if len(nogo_trials) > 0:
                         fa_rate = nogo_trials['responded'].fillna(0).mean()
-                        if fa_rate > 0.20:
+                        if fa_rate > 0.30:
                             p_result["Flags"].append(f"GNG: High false alarms ({fa_rate:.0%})")
                     
                     # High omission error rate (letting the task run and doing something else)
