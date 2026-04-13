@@ -1,6 +1,7 @@
 # Fraudulent study participation detector
 
 This Streamlit app detects fraudulent participation to an online study with 3 cognitive tasks (Go-NoGo, Approach-Avoidance Task, 2-Alternatives Forced-Choice). It flags speed-running, excessive inattention, bot completion.
+Caution: in our case, study participants are informed prior to participation and prior to starting the tasks that such algorithm will be applied and that compensation will be denied for fraudulent behavior.
 
 ### How to use
 - Open the [Streamlit app](https://fraudulentstudyparticipationdetector.streamlit.app/) in your browser
