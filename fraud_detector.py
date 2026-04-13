@@ -32,8 +32,8 @@ TASK_INFO = {
 }
 
 def extract_pid(filename):
-    match = re.search(r'(\d+)', filename)
-    return match.group(1) if match else filename
+    # Splits the string at the first "_" and takes the first part
+    return filename.split('_')[0]
 
 # 2. App ui
 st.set_page_config(page_title="Fraudulent participation detector", layout="wide")
