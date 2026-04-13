@@ -17,7 +17,7 @@ Caution: in our case, study participants are informed prior to participation and
 | All tasks speed-running | > 15% trials below mininmal RTs* | Speed-running |
 | GNG high false alarm rate | > 20% on NoGo trials | Always pressing to rush regardless of stimulus type |
 | GNG high miss rate | > 10 % on Go trials | Letting the task run while doing something else |
-| 2AFC same-side streak | > 12 consecutive trials | Always chosing the same side to rush |
+| 2AFC same-side streak | > 10 consecutive trials | Always chosing the same side to rush |
 | AAT high error rate | > 25% incorrect trials | Ignoring rules to rush or responding randomly without focusing |
 | AAT same-response streak | > 12 consecutive trials |  Always avoiding or approaching to rush |
 
