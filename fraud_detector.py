@@ -113,7 +113,7 @@ if uploaded_files:
             if task_type == "AFC" and info["resp_col"] in trials.columns:
                 streaks = trials[info["resp_col"]].ne(trials[info["resp_col"]].shift()).cumsum()
                 max_streak = trials.groupby(streaks).size().max()
-                if max_streak > 12:
+                if max_streak > 10:
                     p_result["Flags"].append(f"AFC: Long streak ({max_streak} trials)")
 
             # AAT: long streaks of the same answers and suspiciously low accuracy 
@@ -122,7 +122,7 @@ if uploaded_files:
                     # Accuracy (Cond vs Responded)
                     trials['is_correct'] = (trials['aat_cond'] == trials['aat_responded']).astype(int)
                     aat_error_rate = 1 - trials['is_correct'].mean()
-                    if aat_error_rate > 0.35:
+                    if aat_error_rate > 0.25:
                         p_result["Flags"].append(f"AAT: High error rate ({aat_error_rate:.0%})")
                     
                     # Response Streak (Pulling/Pushing regardless of rule)
