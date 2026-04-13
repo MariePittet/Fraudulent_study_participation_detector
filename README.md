@@ -24,5 +24,5 @@ Caution: in our case, study participants are informed prior to participation and
 _* Minimal RTs are 250ms for GNG and AAT, and 200ms for 2AFC since preference may induce quicker RTs for highly recognized and liked items than external rules_
 
 ### No data but wanna feel the thrill of catching villains ?
-Use the data in fraudulent_data_examples to drop in the app. 
+Use the data in fraudulent_data_examples to drop in the app. This is courtesy of our two professional in-lab fraudsters (Dhwani Shah and Hugo Najberg) who tried to bypass filters.
 
