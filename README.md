@@ -13,7 +13,6 @@ Caution: in our case, study participants are informed prior to participation and
 
 | Rule | Threshold | Behavior flagged |
 | :--- | :--- | :--- |
-| All tasks low RT variability | IQR <75ms | Button mashing or bot completion |
 | All tasks speed-running | > 15% trials below minimal RTs* | Speed-running |
 | GNG high false alarm rate | > 30% on NoGo trials | Always pressing to rush regardless of stimulus type |
 | GNG high miss rate | > 10 % on Go trials | Letting the task run while doing something else |
