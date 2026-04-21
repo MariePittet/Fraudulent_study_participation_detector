@@ -25,7 +25,7 @@ TASK_INFO = {
     "AAT": {
         "min_rt": 250, 
         "rt_col": "aat_rt", 
-        "resp_col": "aat_responded", 
+        "resp_col": "aat_response", 
         "cond_col": "aat_cond",
         "pretty": "Approach-Avoidance"
     }
