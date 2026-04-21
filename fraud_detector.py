@@ -5,7 +5,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import re
 
 # 1. Task metrics and thresholds for fraud detection
 TASK_INFO = {
@@ -17,7 +16,7 @@ TASK_INFO = {
         "pretty": "Go/No-Go"
     },
     "AFC": {
-        "min_rt": 200, # lower threshold since the rule here is purely preference (reaction to prefered item may be fast)
+        "min_rt": 200, 
         "rt_col": "afc_rt", 
         "resp_col": "afc_chosen_side", 
         "pretty": "2-AFC"
@@ -26,16 +25,15 @@ TASK_INFO = {
         "min_rt": 250, 
         "rt_col": "aat_rt", 
         "resp_col": "aat_response", 
-        "cond_col": "aat_cond",
+        "cond_col": "aat_congruency", # Updated to match CSV
         "pretty": "Approach-Avoidance"
     }
 }
 
 def extract_pid(filename):
-    # Splits the string at the first "_" and takes the first part
     return filename.split('_')[0]
 
-# 2. App ui
+# 2. App UI
 st.set_page_config(page_title="Fraudulent participation detector", layout="wide")
 st.title("🕵️ Fraudulent participation detector")
 
@@ -45,7 +43,8 @@ if uploaded_files:
     participant_files = {}
     for f in uploaded_files:
         pid = extract_pid(f.name)
-        if pid not in participant_files: participant_files[pid] = []
+        if pid not in participant_files: 
+            participant_files[pid] = []
         participant_files[pid].append(f)
 
     all_summary = []
@@ -57,78 +56,111 @@ if uploaded_files:
 
         for file in files:
             task_type = next((t for t in TASK_INFO if t in file.name.upper()), None)
-            if not task_type: continue
+            if not task_type: 
+                continue
             
             df = pd.read_csv(file)
+            # Normalize columns to lowercase for easier matching
             df.columns = [c.strip().lower() for c in df.columns]
             info = TASK_INFO[task_type]
             
-            # Data extraction 
+            # --- Data Extraction ---
+            rt_col_found = None
+            # Check if RT column exists (case-insensitive check already done by df.columns normalization)
             if info["rt_col"] and info["rt_col"] in df.columns:
                 trials = df[df[info["rt_col"]].notna()].copy()
                 trials['clean_rt'] = trials[info["rt_col"]] * 1000
             else:
-                # Manual fallback
+                # Manual fallback for PsychoPy times
                 start_col = f"{task_type.lower()}_trial.started"
                 stop_col = f"{task_type.lower()}_trial.stopped"
                 if start_col in df.columns and stop_col in df.columns:
                     trials = df[df[start_col].notna()].copy()
                     trials['clean_rt'] = (trials[stop_col] - trials[start_col]) * 1000
-                    if task_type == "AFC": trials['clean_rt'] -= 500
-                else: continue
+                    if task_type == "AFC": 
+                        trials['clean_rt'] -= 500
+                else: 
+                    # Cannot find timing data, skip this file
+                    continue
 
             trials = trials[trials['clean_rt'] > 1] 
             trials['task_label'] = task_type
 
-            # 3. Fraud rules
+            # --- Fraud Rules ---
             
-            # Speeding: too many trials faster than the minimum RT threshold (speed running, or computer completion)
+            # 1. Speeding
             too_fast_rate = (trials['clean_rt'] < info['min_rt']).mean()
             if too_fast_rate > 0.15:
                 p_result["Flags"].append(f"{task_type}: Speeding ({too_fast_rate:.0%})")
 
-            # GNG: high error rates
+            # 2. GNG Specifics
             if task_type == "GNG":
                 if "isgo" in df.columns and "responded" in df.columns:
-                    # High commission error rate (always tapping on NoGo items)
                     nogo_trials = df[df['isgo'] == 0]
                     if len(nogo_trials) > 0:
                         fa_rate = nogo_trials['responded'].fillna(0).mean()
                         if fa_rate > 0.30:
                             p_result["Flags"].append(f"GNG: High false alarms ({fa_rate:.0%})")
                     
-                    # High omission error rate (letting the task run and doing something else)
                     go_trials = df[df['isgo'] == 1]
                     if len(go_trials) > 0:
                         miss_rate = 1 - go_trials['responded'].fillna(0).mean()
                         if miss_rate > 0.10:
                             p_result["Flags"].append(f"GNG: High miss Rate ({miss_rate:.0%})")
 
-            # AFC: long streaks of the same item position (always picking the item on the left, or on the right)
+            # 3. AFC Specifics
             if task_type == "AFC" and info["resp_col"] in trials.columns:
                 streaks = trials[info["resp_col"]].ne(trials[info["resp_col"]].shift()).cumsum()
                 max_streak = trials.groupby(streaks).size().max()
                 if max_streak > 10:
                     p_result["Flags"].append(f"AFC: Long streak ({max_streak} trials)")
 
-            # AAT: long streaks of the same answers and suspiciously low accuracy 
+            # 4. AAT Specifics (CORRECTED LOGIC)
             if task_type == "AAT":
-                if "aat_cond" in df.columns and "aat_responded" in df.columns:
-                    # Accuracy (Cond vs Responded)
-                    trials['is_correct'] = (trials['aat_cond'] == trials['aat_response']).astype(int)
-                    aat_error_rate = 1 - trials['is_correct'].mean()
-                    if aat_error_rate > 0.25:
-                        p_result["Flags"].append(f"AAT: High error rate ({aat_error_rate:.0%})")
+                # Check for the actual column names in your CSV (normalized to lowercase)
+                # Your CSV has: 'aat_congruency' (compatible/incompatible) and 'aat_response' (approach/avoid)
+                if "aat_congruency" in trials.columns and "aat_response" in trials.columns:
                     
-                    # Response Streak (Pulling/Pushing regardless of rule)
-                    aat_streaks = trials['aat_response'].ne(trials['aat_response'].shift()).cumsum()
-                    max_aat_streak = trials.groupby(aat_streaks).size().max()
-                    if max_aat_streak > 12:
-                        p_result["Flags"].append(f"AAT: Long streak ({max_aat_streak} trials)")
+                    # Define correctness based on AAT rules:
+                    # Compatible + Approach = Correct
+                    # Incompatible + Avoid = Correct
+                    
+                    def check_aat_correct(row):
+                        rule = str(row['aat_congruency']).lower()
+                        action = str(row['aat_response']).lower()
+                        
+                        if rule == 'compatible' and action == 'approach':
+                            return 1
+                        elif rule == 'incompatible' and action == 'avoid':
+                            return 1
+                        else:
+                            return 0
+
+                    trials['is_correct'] = trials.apply(check_aat_correct, axis=1)
+                    
+                    # Calculate error rate
+                    # Avoid division by zero if no trials
+                    if len(trials) > 0:
+                        aat_error_rate = 1 - trials['is_correct'].mean()
+                        
+                        if aat_error_rate > 0.25:
+                            p_result["Flags"].append(f"AAT: High error rate ({aat_error_rate:.0%})")
+                        
+                        # Check for response streaks (ignoring the rule, just looking at motor repetition)
+                        aat_streaks = trials['aat_response'].ne(trials['aat_response'].shift()).cumsum()
+                        max_aat_streak = trials.groupby(aat_streaks).size().max()
+                        if max_aat_streak > 12:
+                            p_result["Flags"].append(f"AAT: Long streak ({max_aat_streak} trials)")
+                    else:
+                        p_result["Flags"].append("AAT: No valid trials found")
+                else:
+                    # Debug info if columns are missing
+                    available_cols = [c for c in trials.columns if 'aat' in c]
+                    p_result["Flags"].append(f"AAT: Missing columns. Found: {available_cols}")
 
             all_trials_for_p.append(trials[['task_label', 'clean_rt']])
 
-        # 5. Results, table, and plots
+        # --- Finalize Participant Result ---
         p_result["Flag Count"] = len(p_result["Flags"])
         if p_result["Flag Count"] > 0:
             p_result["Status"] = "🚩 SUSPICIOUS"
@@ -138,13 +170,16 @@ if uploaded_files:
         
         display_dict = {k: v for k, v in p_result.items() if k != "Flags"}
         all_summary.append(display_dict)
-        if all_trials_for_p: plot_data[pid] = pd.concat(all_trials_for_p)
-    # Table
+        
+        if all_trials_for_p: 
+            plot_data[pid] = pd.concat(all_trials_for_p, ignore_index=True)
+
+    # --- Display Results ---
     if all_summary:
         report_df = pd.DataFrame(all_summary).sort_values(by="Flag Count", ascending=False)
         st.subheader("Batch report")
         st.dataframe(report_df, use_container_width=True, hide_index=True)
-    # Plots for each participant
+        
     if plot_data:
         st.divider()
         st.subheader("Trial distribution inspection")
