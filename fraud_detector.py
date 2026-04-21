@@ -82,11 +82,6 @@ if uploaded_files:
 
             # 3. Fraud rules
             
-            # Unnaturally low variability: very low variability in RTs suggesting someone mashed or a bot completed the task
-            rt_iqr = trials['clean_rt'].quantile(0.75) - trials['clean_rt'].quantile(0.25)
-            if rt_iqr < 75:
-                p_result["Flags"].append(f"{task_type}: Low variability (IQR {rt_iqr:.0f}ms)")
-            
             # Speeding: too many trials faster than the minimum RT threshold (speed running, or computer completion)
             too_fast_rate = (trials['clean_rt'] < info['min_rt']).mean()
             if too_fast_rate > 0.15:
