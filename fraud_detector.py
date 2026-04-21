@@ -115,13 +115,13 @@ if uploaded_files:
             if task_type == "AAT":
                 if "aat_cond" in df.columns and "aat_responded" in df.columns:
                     # Accuracy (Cond vs Responded)
-                    trials['is_correct'] = (trials['aat_cond'] == trials['aat_responded']).astype(int)
+                    trials['is_correct'] = (trials['aat_cond'] == trials['aat_response']).astype(int)
                     aat_error_rate = 1 - trials['is_correct'].mean()
                     if aat_error_rate > 0.25:
                         p_result["Flags"].append(f"AAT: High error rate ({aat_error_rate:.0%})")
                     
                     # Response Streak (Pulling/Pushing regardless of rule)
-                    aat_streaks = trials['aat_responded'].ne(trials['aat_responded'].shift()).cumsum()
+                    aat_streaks = trials['aat_response'].ne(trials['aat_response'].shift()).cumsum()
                     max_aat_streak = trials.groupby(aat_streaks).size().max()
                     if max_aat_streak > 12:
                         p_result["Flags"].append(f"AAT: Long streak ({max_aat_streak} trials)")
